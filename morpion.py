@@ -3,7 +3,127 @@ import doctest
 g = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 f = [[1, 1, 1], [1, 1, 2], [2, 1, 2]] # Grille créé pour les tests.
 
+def affiche(g : list) -> None :
+    """
+    Affiche la grille du morpion sous forme de lignes et de colonnes :
+    -> Entrée : Une liste g qui est la grille du morpion.
+    -> Sortie : Renvoyant None et affichant la grille du morpion sous forme de lignes et de colonnes : None
+
+    Tests avec des entiers :
+    >>> affiche(f)
+    1 | 1 | 1
+    1 | 1 | 2
+    2 | 1 | 2
+    <BLANKLINE>
+    >>> affiche(g)
+    0 | 0 | 0
+    0 | 0 | 0
+    0 | 0 | 0
+    <BLANKLINE>
+    """
+    for i in range(len(g)) :
+        print(f"{g[i][0]} | {g[i][1]} | {g[i][2]}") # Affiche la ligne i de la grille g en séparant les éléments par des " | ".
+    print()
+    return None
+
+def ligne(i : int, g : list) -> list :
+    """
+    Renvoie la ligne i de la grille g :
+    -> Entrée : Une variable i pour la ligne : int et une liste g qui est la grille.
+    -> Sortie : Renvoyant la ligne i de la grille g : list
+    
+    Tests avec des entiers :
+    >>> ligne(1,f)
+    [1, 1, 2]
+    >>> ligne(0,g)
+    [1, 0, 0]
+    
+    """
+    return g[i] # Renvoyant la ligne i de la grille g.
+
+def colonne(j : int, g : list) -> list :
+    """
+    Renvoie la colonne j de la grille g :
+    -> Entrée : Une variable j pour la colonne : int et une liste g qui est la grille.
+    -> Sortie : Renvoyant la colonne j de la grille g : list
+    
+    Tests avec des entiers :
+    >>> colonne(1,f)
+    [1, 1, 1]
+    >>> colonne(0,g)
+    [0, 0, 0]
+    """
+    colonne = []
+    for i in range(len(g)) :
+        colonne.append(g[i][j]) # Ajoute à la liste colonne l'élément de la ligne i et de la colonne j de la grille g.
+    return colonne
+
+def diagPrincipale(g : list) -> list :
+    """
+    Renvoie la liste de tous les éléments de la diagonale principale :
+    -> Entrée : Aucun paramètre en entrée.
+    -> Sortie : Renvoyant la liste de tous les éléments de la diagonale principale : list
+
+    Tests avec des entiers :
+    >>> diagPrincipale(f)
+    [1, 1, 2]
+    >>> diagPrincipale(g)
+    [0, 0, 0]
+    """
+    diag = []
+    j = 0
+    for i in range(len(g)) :
+        diag.append(g[i][j]) # Ajoute à la liste diag l'élément de la ligne i et de la colonne j de la grille g.
+        j += 1
+    return diag
+
+def diagSecondaire(g : list) -> list :
+    """
+    Renvoie la liste de tous les éléments de la diagonale secondaire :
+    -> Entrée : Aucun paramètre en entrée.
+    -> Sortie : Renvoyant la liste de tous les éléments de la diagonale secondaire : list
+    Tests avec des entiers :
+    >>> diagSecondaire(f)
+    [1, 1, 2]
+    >>> diagSecondaire(g)
+    [0, 0, 0]
+    """
+    diag = []
+    j = len(g) - 1
+    for i in range(len(g)) :
+        diag.append(g[i][j]) # Ajoute à la liste diag l'élément de la ligne i et de la colonne j de la grille g.
+        j -= 1
+    return diag
+
+def joue(joueur : int, i : int, j : int) -> None :
+
+    """
+    Place la valeur correspondante au joueur dans la grille g, au point de coordonnées (i,j) :
+    -> Entrée : Une variable joueur qui représente le numéro du joueur qui joue : int et une variable i pour la ligne : int et une variable j pour la colonne : int.
+    -> Sortie : Renvoie None et place la valeur correspondante au joueur dans la grille g, au point de coordonnées (i,j) : None
+
+    Tests avec des entiers :
+    >>> joue(1,0,0)
+    >>> affiche(g)
+    1 | 0 | 0
+    0 | 0 | 0
+    0 | 0 | 0
+    <BLANKLINE>
+    >>> joue(2,1,1)
+    >>> affiche(g)
+    1 | 0 | 0
+    0 | 2 | 0
+    0 | 0 | 0
+    <BLANKLINE>
+
+    """
+
+    g[i][j] = joueur # Place la valeur correspondante au joueur dans la grille g, au point de coordonnées (i,j).
+    return None
+
+
 def nbPionDansLigne(pion : int, i : int, g : list) -> int :
+
     """
     Compte le nombre de pion qu'il y a dans une ligne :
     -> Entrée : Une variable 'pion' : La ligne représentant int et une variable i et la grille représentant int et une liste g.
@@ -14,11 +134,11 @@ def nbPionDansLigne(pion : int, i : int, g : list) -> int :
     2
     >>> nbPionDansLigne(2,0,f)
     0
-
     """
+    
     compteur = 0
-    for nombre in g[i] :
-        if nombre == pion :
+    for j in range(len(g)) :
+        if g[i][j] == pion :
             compteur += 1
     return compteur
 
@@ -146,5 +266,13 @@ def estSurDiagSecondaire(i : int, j : int, g : list) -> bool :
         x += 1
     return False
 
-doctest.testmod()
-
+if __name__ == "__main__":
+    doctest.testmod(verbose=True)
+    
+    # Tests supplémentaires de la fonction joue()
+    # Note : Réinitialiser g pour les tests après les doctests
+    g = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    assert joue(1,0,0) == None
+    assert g == [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
+    assert joue(2,1,1) == None
+    assert g == [[1, 0, 0], [0, 2, 0], [0, 0, 0]]
