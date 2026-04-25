@@ -1,4 +1,5 @@
 import doctest
+import copy
 
 g = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 f = [[1, 1, 1], [1, 1, 2], [2, 1, 2]] # Grille créé pour les tests.
@@ -265,8 +266,129 @@ def estSurDiagSecondaire(i : int, j : int, g : list) -> bool :
             return True
         x += 1
     return False
+def coupsPossibles() -> list:
+    """
+    Renvoie les cases vides de la grille
+    -> Sortie : coups qui représente une liste de tuple des coups possibles
+    """
+    global g
+    coups = []
+    for y in range(len(g)):
+        for x in range(len(g[y])):
+            if g[y][x] == 0:
+                coups.append((y, x))
+    return coups
+
+def evaluation() -> int:
+    """
+    Renvoie le résultat de la partie
+    -> Sortie : entier représentant l'issue de la partie
+    """
+    global g
+    # Si l'ordinateur gagne
+    if gagne(2, g):
+        return 1
+    # Si le joueur gagne
+    if gagne(1, g):
+        return -1
+    # Si aucune victoire
+    return 0
+
+def minimax(joueur:int, tour:int=0) -> list:
+    """
+    Renvoie la valeur du coup joué à l'IA  en fonction de qui joue
+    -> Entrée : joueur -> Entier qui représente qui joue le coup; tour -> entier qui représente le nombre de tour en cour du coup joue
+    -> Sortie : meilleur_coup -> liste qui représente la valeur du coup joué et le nombre de tour pour l'atteindre
+    """
+    global g
+    if coupsPossibles() == [] or gagne(1, g) or gagne(2, g) or tour >=2:
+        return [evaluation(), tour]
+    
+    tour += 1
+
+    gfactice = copy.deepcopy(g)
+    if joueur == 2:
+        meilleur_coup = [-2, 10]
+        for coup in coupsPossibles():
+            g = copy.deepcopy(gfactice)
+            joue(2, coup[0], coup[1])
+            coup_joue = minimax(1, tour)
+            if meilleur_coup[0] < coup_joue[0]:
+                meilleur_coup = coup_joue
+        g = copy.deepcopy(gfactice)
+        return meilleur_coup
+    
+    if joueur == 1:
+        gfactice = copy.deepcopy(g)
+        meilleur_coup = [2, 10]
+        for coup in coupsPossibles():
+            g = copy.deepcopy(gfactice)
+            joue(1, coup[0], coup[1])
+            coup_joue = minimax(2, tour)
+            if meilleur_coup[0] > coup_joue[0]:
+                meilleur_coup = coup_joue
+        g = copy.deepcopy(gfactice)
+        return meilleur_coup
+
+def meilleurCoupIA() -> tuple:
+    """
+    Renvoie la position du meilleur coup à l'IA
+    Sortie : meilleur_coup : tuple de la position du meilleur coup pour l'IA
+    """
+    global g
+    gfactice = copy.deepcopy(g)
+    meilleur_coup = [(-1, -1), -10, 10]
+    for coup in coupsPossibles():
+        g = copy.deepcopy(gfactice)
+        joue(2, coup[0], coup[1])
+        coup_valeur = minimax(1)
+        if coup_valeur[0] > meilleur_coup[1] or (coup_valeur[0] == meilleur_coup[1] and coup_valeur[1] < meilleur_coup[2]):
+            meilleur_coup[1] = coup_valeur[0]
+            meilleur_coup[2] = coup_valeur[1]
+            meilleur_coup[0] = coup
+    g = copy.deepcopy(gfactice)
+    print("coup joue par IA : " + str(meilleur_coup))
+    return meilleur_coup[0]
+
+def partie() -> None:
+    """
+    Gère le déroulé d'une partie
+    """
+    global g
+    print("=== Morpion IA (Minimax) ===")
+    affiche(g)
+    Humain = True
+    while coupsPossibles() != []:
+        if Humain == True:
+            print("Votre tour ! (X)")
+            x = int(input("Colonne (0..2) : "))
+            y = int(input("Ligne (0..2) : "))
+            while (y,x) not in coupsPossibles():
+                print("Emplacement non disponible\nRéessayer")
+                x = int(input("Colonne (0..2) : "))
+                y = int(input("Ligne (0..2) : "))
+            joue(1, y, x)
+        else:
+            print("Tour de l'IA (O)...")
+            meilleur_coup = meilleurCoupIA()
+            print(meilleur_coup)
+            joue(2, meilleur_coup[0], meilleur_coup[1])
+        affiche(g)
+        Humain = not Humain
+
+        print(coupsPossibles())
+        if gagne(1, g):
+            print("Vous Avez Gagné !")
+            return
+        if gagne(2, g):
+            print("L'IA a Gagné !")
+            return
+    print("Match nul !")
+
+        
 
 if __name__ == "__main__":
+    import doctest
     doctest.testmod(verbose=True)
     
     # Tests supplémentaires de la fonction joue()
@@ -276,3 +398,57 @@ if __name__ == "__main__":
     assert g == [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
     assert joue(2,1,1) == None
     assert g == [[1, 0, 0], [0, 2, 0], [0, 0, 0]]
+
+    # Test de la fonction coupsPossibles()
+    g = [[1,1,2],[2,0,1],[0,2,1]]
+    assert coupsPossibles() == [(1, 1), (2, 0)]
+    g = [[1,1,2],[2,1,1],[1,2,1]]
+    assert coupsPossibles() == []
+    #--------------------------------#
+
+    # Test de la fonction evaluation()
+    g=[[1,1,1],[2,2,0],[0,0,0]]
+    assert evaluation() == -1
+    g=[[1,1,0],[2,2,2],[0,0,0]]
+    assert evaluation() == 1
+    g=[[1,1,2],[2,2,1],[1,2,1]]
+    assert evaluation() == 0
+    #--------------------------------#
+
+    # --- Test de la fonction minimax() ---
+
+    # Grille vide -> evaluation() = 0
+    g = [[0,0,0],[0,0,0],[0,0,0]]
+    assert minimax(2) == [0, 2]
+    
+    # L'IA (2) a déjà gagné -> evaluation() = 1
+    g = [[2,2,2],[1,1,0],[0,0,0]]
+    assert minimax(2) == [1, 0]
+    
+    # Le joueur (1) a déjà gagné -> evaluation() = -1
+    g = [[1,1,1],[2,2,0],[0,0,0]]
+    assert minimax(1) == [-1, 0]
+    #--------------------------------#
+
+    # --- Tests de meilleurCoupIA() ---
+    
+    # IA victoire en ligne
+    assert gagne(2, [[1,0,0],[2,2,2],[0,0,0]]) == True
+    g = [[1,0,0],[2,0,2],[0,0,0]]
+    print(meilleurCoupIA())
+    assert meilleurCoupIA() == (1, 1)
+
+    # IA victoire en diagonale
+    g = [[2,0,0],[0,2,0],[0,0,0]]
+    assert meilleurCoupIA() == (2, 2)
+
+    # IA bloque le joueur
+    g = [[0,1,0],[0,0,0],[0,1,0]]
+    print(meilleurCoupIA())
+    assert meilleurCoupIA() == (1, 1)
+    #--------------------------------#
+
+
+g = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+
+partie()
